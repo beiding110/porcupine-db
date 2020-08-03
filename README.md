@@ -75,6 +75,45 @@
             }).run();
         </td>
     </tr>
+    <tr>
+        <td>
+            SELECT column_name(s)
+            FROM table_name1
+            INNER JOIN table_name2
+            ON table_name1.column_name=table_name2.column_name
+        </td>
+        <td>
+            db.select(column_name).from(table_name1).inner.join(table_name2).on(function(left, right) {
+                return left.column_name === right.column_name
+            }).run();
+        </td>
+    </tr>
+    <tr>
+        <td>
+            SELECT column_name(s)
+            FROM table_name1
+            LEFT JOIN table_name2
+            ON table_name1.column_name=table_name2.column_name
+        </td>
+        <td>
+            db.select(column_name).from(table_name1).left.join(table_name2).on(function(left, right) {
+                return left.column_name === right.column_name
+            }).run();
+        </td>
+    </tr>
+    <tr>
+        <td>
+            SELECT column_name(s)
+            FROM table_name1
+            RIGHT JOIN table_name2
+            ON table_name1.column_name=table_name2.column_name
+        </td>
+        <td>
+            db.select(column_name).from(table_name1).right.join(table_name2).on(function(left, right) {
+                return left.column_name === right.column_name
+            }).run();
+        </td>
+    </tr>
 </table>
 
 ## 使用
