@@ -28,14 +28,20 @@
 	<div>
 		<button onclick="selectHandler()">筛选数据</button>
 		<button onclick="selectAllHandler()">筛选全部数据</button>
+		<button onclick="selectInnerJoinHandler()">内连接筛选数据</button>
 	</div>
 	<div>
-		<h1>table表中数据</h1>	
+		<h1>数据库中数据</h1>
+
+		<h2>table</h2>
 		<div id="table"></div>
+
+		<h2>table2</h2>
+		<div id="table2"></div>
 	</div>
 
 	<div>
-		<h1>筛选的数据</h1>	
+		<h1>筛选的数据</h1>
 		<div id="select"></div>
 	</div>
 
@@ -45,7 +51,12 @@
 	<script type="text/javascript">
 		var db = new Pdb;
 		db.create.table('table').run();
+		db.create.table('table2').run();
 
+		/**
+		 * 插入数据
+		 * @return {[type]} [description]
+		 */
 		function insertHandler() {
 			db.insert.into('table').value([{
 				name: 'insert' + ((Math.random() + '').slice(2, 5)),
@@ -58,6 +69,10 @@
 			updateTableTableView();
 		};
 
+		/**
+		 * 删除数据
+		 * @return {[type]} [description]
+		 */
 		function delHandler() {
 			db.delete.from('table').where(function(item) {
 				return item.name === 'yzh';
@@ -65,12 +80,21 @@
 
 			updateTableTableView();
 		};
+
+		/**
+		 * 删除全部数据
+		 * @return {[type]} [description]
+		 */
 		function delAllHandler() {
 			db.delete.from('table');
 
 			updateTableTableView();
 		}
 
+		/**
+		 * 更新数据
+		 * @return {[type]} [description]
+		 */
 		function updateHandler() {
 			db.update('table').set({
 				age: 312
@@ -80,6 +104,11 @@
 
 			updateTableTableView();
 		};
+
+		/**
+		 * 更新全部数据
+		 * @return {[type]} [description]
+		 */
 		function updateAllHandler() {
 			db.update('table').set({
 				age: 666
@@ -88,6 +117,10 @@
 			updateTableTableView();
 		};
 
+		/**
+		 * 筛选数据
+		 * @return {[type]} [description]
+		 */
 		function selectHandler() {
 			var rows = db.select(['age', 'name']).from('table').where(function(item) {
 				return item.name === 'yzh';
@@ -95,15 +128,37 @@
 
 			updateSelectTableView(rows);
 		};
+
+		/**
+		 * 筛选全部数据
+		 * @return {[type]} [description]
+		 */
 		function selectAllHandler() {
 			var rows = db.select('name').from('table').run();
 
 			updateSelectTableView(rows);
-		}
+		};
+
+		/**
+		 * 内连接筛选数据
+		 * @return {[type]} [description]
+		 */
+		function selectInnerJoinHandler() {
+			var rows = db.select().from('table').inner.join('table2').on(function(left, right) {
+				return left.name === right.name
+			}).where(function(row) {
+				return row.name === 'yzh';
+			}).run();
+
+			updateSelectTableView(rows);
+		};
 
 		function updateTableTableView() {
 			var table = db.select().from('table').run();
-			document.querySelector('#table').innerHTML = renderTable(table)
+			document.querySelector('#table').innerHTML = renderTable(table);
+
+			var table2 = db.select().from('table2').run();
+			document.querySelector('#table2').innerHTML = renderTable(table2);
 		};
 		updateTableTableView();
 
@@ -111,8 +166,14 @@
 			document.querySelector('#select').innerHTML = renderTable(rows)
 		}
 
+		/**
+		 * 复原数据
+		 */
 		function resetHandler() {
 			window.localStorage.table = '%5B%7B%22name%22%3A%22yzh%22%2C%22age%22%3A123%2C%22rowguid%22%3A%227ad0ad0a-09a3-2fd2-3ebe-d59fe759bf7f%22%7D%2C%7B%22name%22%3A%22zh%22%2C%22age%22%3A123%2C%22rowguid%22%3A%2259367e67-3706-46cf-9e39-069ab16e0052%22%7D%2C%7B%22name%22%3A%22dcj%22%2C%22age%22%3A123%2C%22rowguid%22%3A%2235108562-0835-6585-6e2b-46426c1d8774%22%7D%2C%7B%22name%22%3A%22dgw%22%2C%22age%22%3A123%2C%22rowguid%22%3A%22d8dfca0e-0ba4-cd81-69bc-87db75fb2940%22%7D%2C%7B%22name%22%3A%22zw%22%2C%22age%22%3A123%2C%22rowguid%22%3A%221d72a3b7-8ff0-4ac3-2a60-3d57ed029795%22%7D%2C%7B%22name%22%3A%22dqs%22%2C%22age%22%3A123%2C%22rowguid%22%3A%22f3b34ec8-b98e-3a70-85f3-70b5bd9b9bf5%22%7D%2C%7B%22name%22%3A%22wkh%22%2C%22age%22%3A123%2C%22rowguid%22%3A%224be51aab-c9ba-58e7-5851-2f90972fe6eb%22%7D%2C%7B%22name%22%3A%22llc%22%2C%22age%22%3A123%2C%22rowguid%22%3A%22199a3eca-557d-2784-ba23-27154d42f1fb%22%7D%5D';
+
+			window.localStorage.table2 = '%5B%7B%22name%22%3A%22yzh%22%2C%22score%22%3A100%7D%2C%7B%22name%22%3A%22yzh%22%2C%22score%22%3A95%7D%2C%7B%22name%22%3A%22zh%22%2C%22score%22%3A99%7D%2C%7B%22name%22%3A%22dcj%22%2C%22score%22%3A98%7D%2C%7B%22name%22%3A%22dgw%22%2C%22score%22%3A97%7D%5D';
+
 			updateTableTableView();
 		};
     </script>

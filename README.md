@@ -209,3 +209,29 @@ db.select(['name', age]).from('table').where(function(item) {
 }).run();
 
 ```
+
+#### 内连接查询
+
+```JavaScript
+
+var rows = db.select().from('table').inner.join('table2').on(function(left, right) {
+    return left.name === right.name
+}).run();
+
+```
+
+使用 select 及 where
+
+```JavaScript
+
+var rows = db.select([
+    'score',
+    'name',
+    'age'
+]).from('table').inner.join('table2').on(function(left, right) {
+    return left.name === right.name
+}).where(function(row) {
+    return row.name === 'yzh';
+}).run();
+
+```

@@ -39,13 +39,13 @@
      */
     function setStorage(type, key, value) {
         if (typeof key === 'string') {
-            window[type][key] = (typeof value === 'object') 
-                ? escape(JSON.stringify(value)) 
+            window[type][key] = (typeof value === 'object')
+                ? escape(JSON.stringify(value))
                 : escape(value);
         } else if (typeof key === 'object') {
             Object.keys(key).forEach(function (item) {
-                window[type][item] = (typeof value === 'object') 
-                    ? escape(JSON.stringify(key[item])) 
+                window[type][item] = (typeof value === 'object')
+                    ? escape(JSON.stringify(key[item]))
                     : escape(key[item]);
             });
         };
@@ -99,7 +99,25 @@
                 guid += "-";
         };
         return guid;
-    }
+    };
+
+    /**
+     * 检测filter函数并提取函数内容
+     * @param  {Function} filter 函数
+     * @return {String}        函数内容
+     */
+    function getFilterFunctionContent(filter) {
+        if(getType(filter) !== 'function') {
+            throw new Error('where语句参数应为函数');
+            return false;
+        };
+
+        var filterStr = filter.toString();
+        filterStr = filterStr.replace(/\s+/g, '');
+        filterStr = filterStr.slice(filterStr.indexOf('return') + 6, filterStr.indexOf(';') ? -2 : -1);
+
+        return filterStr;
+    };
 
     function Pdb() {
         this.init();
@@ -112,17 +130,22 @@
                 '%c porcupine-data-base',
                 'background:#35495e; border-radius:3px; color:#fff'
             );
-            
+
             _pointer = this;
 
             this.pathReset();
-            
+
             this.$ram = {
                 dataBase: getLocal(),
                 history: [],
+
                 _current_action_rows: [],
+
                 _current_action_table: [],
-                _current_action_table_name: []
+                _current_action_table_name: '',
+
+                _current_action_table_to_join: [],
+                _current_action_table_name_to_join: '',
             };
         },
         getRam: function(type, key) {
@@ -138,13 +161,13 @@
         },
         setRam: function(type, key, value) {
             if (typeof key === 'string') {
-                _pointer.$ram[type][key] = (typeof value === 'object') 
-                    ? escape(JSON.stringify(value)) 
+                _pointer.$ram[type][key] = (typeof value === 'object')
+                    ? escape(JSON.stringify(value))
                     : escape(value);
             } else if (typeof key === 'object') {
                 Object.keys(key).forEach(function (item) {
-                    _pointer.$ram[type][item] = (typeof value === 'object') 
-                        ? escape(JSON.stringify(key[item])) 
+                    _pointer.$ram[type][item] = (typeof value === 'object')
+                        ? escape(JSON.stringify(key[item]))
                         : escape(key[item]);
                 });
             };
@@ -172,7 +195,7 @@
                             console.warn('已存在该名称的table：' + table);
                             return false;
                         };
-    
+
                         _pointer.setRam('dataBase', table, []);
                         cb && cb();
                         return true;
@@ -197,7 +220,7 @@
                             console.warn('找不到该table：' + table);
                             return false;
                         };
-    
+
                         _pointer.$ram._current_action_table.push.apply(_pointer.$ram._current_action_table, _pointer.$ram._current_action_rows);
 
                         _pointer.setRam('dataBase', table, _pointer.$ram._current_action_table);
@@ -249,7 +272,7 @@
                         arrToDelIndex.forEach(function(index) {
                             _pointer.$ram._current_action_table.splice(index, 1);
                         })
-                        
+
                         _pointer.setRam('dataBase', table, _pointer.$ram._current_action_table);
                         cb();
                     }
@@ -284,7 +307,7 @@
 
                         _pointer.$ram._current_action_table.splice(index, 1, rowClone);
                     });
-                    
+
                     _pointer.setRam('dataBase', _pointer.$ram._current_action_table_name, _pointer.$ram._current_action_table);
                     cb();
                 }
@@ -321,7 +344,7 @@
                 }
             };
             _pointer.link(linkItem);
-            
+
             return _pointer;
         },
         from: function(table) {
@@ -339,25 +362,69 @@
             return _pointer;
         },
         where: function(filter) {
-            if(getType(filter) !== 'function') {
-                throw new Error('where语句参数应为函数');
-            };
-
-            var filterStr = filter.toString();
-            filterStr = filterStr.replace(/\s+/g, '');
-            filterStr = filterStr.slice(filterStr.indexOf('return') + 6, filterStr.indexOf(';') ? -2 : -1);
+            var filterStr = getFilterFunctionContent(filter);
 
             var linkItem = {
                 sql: ('WHERE ' + filterStr),
                 priority: 1,
                 handler: function(cb) {
-                    _pointer.$ram._current_action_rows = _pointer.$ram._current_action_table.filter(filter);
+                    _pointer.$ram._current_action_rows = _pointer.$ram._current_action_rows.filter(filter);
                     cb();
                 }
             };
             _pointer.link(linkItem);
             return _pointer;
         },
+
+        inner: {
+            join: function(table) {
+                var linkItem = {
+                    sql: ('INNER JOIN ' + table),
+                    priority: 1,
+                    handler: function(cb) {
+                        _pointer.$ram._current_action_table_name_to_join = table;
+                        _pointer.$ram._current_action_table_to_join = _pointer.getRam('dataBase', table);
+
+                        cb();
+                    }
+                };
+                _pointer.link(linkItem);
+
+                return this;
+            },
+            on: function(filter) {
+                var filterStr = getFilterFunctionContent(filter);
+
+                var linkItem = {
+                    sql: ('ON ' + filterStr),
+                    priority: 1,
+                    handler: function(cb) {
+                        var action_row = [];
+
+                        _pointer.$ram._current_action_table.forEach(function(row) {
+                            _pointer.$ram._current_action_table_to_join.forEach(function(row_to_join) {
+                                if(filter(row, row_to_join)) {
+                                    var newRow = clone(row_to_join);
+                                    Object.keys(row).forEach(function(key) {
+                                        newRow[key] = row[key];
+                                    });
+
+                                    action_row.push(newRow);
+                                };
+                            });
+                        });
+
+                        _pointer.$ram._current_action_rows = action_row;
+
+                        cb();
+                    }
+                };
+                _pointer.link(linkItem);
+
+                return _pointer;
+            }
+        },
+
         run: function() {
             var index = 0,
                 sql_text = '';
