@@ -337,7 +337,7 @@
                     _pointer.$ram._current_action_rows = _pointer.$ram._current_action_rows.map(function(item) {
                         var mapObj = {};
                         args.forEach(function(key) {
-                            mapObj[key] = item[key];
+                            mapObj[key] = item[key] ;
                         });
                         return mapObj;
                     });
@@ -403,6 +403,118 @@
 
                         _pointer.$ram._current_action_table.forEach(function(row) {
                             _pointer.$ram._current_action_table_to_join.forEach(function(row_to_join) {
+                                if(filter(row, row_to_join)) {
+                                    var newRow = clone(row_to_join);
+                                    Object.keys(row).forEach(function(key) {
+                                        newRow[key] = row[key];
+                                    });
+
+                                    action_row.push(newRow);
+                                };
+                            });
+                        });
+
+                        _pointer.$ram._current_action_rows = action_row;
+
+                        cb();
+                    }
+                };
+                _pointer.link(linkItem);
+
+                return _pointer;
+            }
+        },
+
+        left: {
+            join: function(table) {
+                var linkItem = {
+                    sql: ('LEFT JOIN ' + table),
+                    priority: 1,
+                    handler: function(cb) {
+                        _pointer.$ram._current_action_table_name_to_join = table;
+                        _pointer.$ram._current_action_table_to_join = _pointer.getRam('dataBase', table);
+
+                        cb();
+                    }
+                };
+                _pointer.link(linkItem);
+
+                return this;
+            },
+            on: function(filter) {
+                var filterStr = getFilterFunctionContent(filter);
+
+                var linkItem = {
+                    sql: ('ON ' + filterStr),
+                    priority: 1,
+                    handler: function(cb) {
+                        var action_row = [];
+
+                        _pointer.$ram._current_action_table.forEach(function(row) {
+                            if(!_pointer.$ram._current_action_table_to_join.some(function(row_to_join) {
+                                return filter(row, row_to_join);
+                            })) {
+                                action_row.push(row);
+                                return;
+                            };
+
+                            _pointer.$ram._current_action_table_to_join.forEach(function(row_to_join) {
+                                if(filter(row, row_to_join)) {
+                                    var newRow = clone(row_to_join);
+                                    Object.keys(row).forEach(function(key) {
+                                        newRow[key] = row[key];
+                                    });
+
+                                    action_row.push(newRow);
+                                };
+                            });
+                        });
+
+                        _pointer.$ram._current_action_rows = action_row;
+
+                        cb();
+                    }
+                };
+                _pointer.link(linkItem);
+
+                return _pointer;
+            }
+        },
+
+        right: {
+            join: function(table) {
+                var linkItem = {
+                    sql: ('RIGHT JOIN ' + table),
+                    priority: 1,
+                    handler: function(cb) {
+                        _pointer.$ram._current_action_table_name_to_join = table;
+                        _pointer.$ram._current_action_table_to_join = _pointer.getRam('dataBase', table);
+
+                        cb();
+                    }
+                };
+                _pointer.link(linkItem);
+
+                return this;
+            },
+            on: function(filter) {
+                var filterStr = getFilterFunctionContent(filter);
+
+                var linkItem = {
+                    sql: ('ON ' + filterStr),
+                    priority: 1,
+                    handler: function(cb) {
+                        var action_row = [];
+
+                        _pointer.$ram._current_action_table_to_join.forEach(function(row_to_join) {
+                            if(!_pointer.$ram._current_action_table.some(function(row) {
+                                return filter(row, row_to_join);
+                            })) {
+                                action_row.push(row_to_join);
+                                return;
+                            };
+
+                            _pointer.$ram._current_action_table.forEach(function(row) {
                                 if(filter(row, row_to_join)) {
                                     var newRow = clone(row_to_join);
                                     Object.keys(row).forEach(function(key) {

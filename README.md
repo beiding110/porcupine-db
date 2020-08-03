@@ -235,3 +235,55 @@ var rows = db.select([
 }).run();
 
 ```
+
+#### 左连接查询
+
+```JavaScript
+
+var rows = db.select().from('table').left.join('table2').on(function(left, right) {
+    return left.name === right.name
+}).run();
+
+```
+
+使用 select 及 where
+
+```JavaScript
+
+var rows = db.select([
+    'score',
+    'name',
+    'age'
+]).from('table').left.join('table2').on(function(left, right) {
+    return left.name === right.name
+}).where(function(row) {
+    return row.name === 'yzh';
+}).run();
+
+```
+
+#### 右连接查询
+
+```JavaScript
+
+var rows = db.select().from('table').right.join('table2').on(function(left, right) {
+    return left.name === right.name
+}).run();
+
+```
+
+使用 select 及 where
+
+```JavaScript
+
+var rows = db.select([
+    'score',
+    'name',
+    'age'
+]).from('table').right.join('table2').on(function(left, right) {
+    return left.name === right.name
+}).where(function(row) {
+    return row.name === 'yzh';
+}).run();
+
+```
