@@ -8,6 +8,8 @@
 	<style>
 		table{width:100%; border-left:1px solid #aaa; border-top:1px solid #aaa;}
 		td, th{border-right:1px solid #aaa; border-bottom:1px solid #aaa;}
+
+		label{display:inline-block; width:80px; text-align:right; font-weight:bold;}
 	</style>
 </head>
 <body>
@@ -15,21 +17,26 @@
 		<button onclick="resetHandler()">复原数据（使用localstorage）</button>
 	</div>
 	<div>
+		<label>增：</label>
 		<button onclick="insertHandler()">插入数据</button>
 	</div>
 	<div>
+		<label>删：</label>
 		<button onclick="delHandler()">删除数据</button>
 		<button onclick="delAllHandler()">删除全部数据</button>
 	</div>
 	<div>
+		<label>改：</label>
 		<button onclick="updateHandler()">更新数据</button>
 		<button onclick="updateAllHandler()">更新全部数据</button>
 	</div>
 	<div>
+		<label>查：</label>
 		<button onclick="selectHandler()">筛选数据</button>
 		<button onclick="selectAllHandler()">筛选全部数据</button>
 	</div>
 	<div>
+		<label>连接查：</label>
 		<button onclick="selectInnerJoinHandler()">内连接筛选数据</button>
 		<button onclick="selectLeftJoinHandler()">左连接筛选数据</button>
 		<button onclick="selectRightJoinHandler()">右连接筛选数据</button>
